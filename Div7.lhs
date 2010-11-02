@@ -1,14 +1,25 @@
 > import Control.Monad
 > import Control.Applicative
 > import Data.List
-> import Debug.Trace
 > import qualified Data.Set as S
 > import qualified Data.Map as M
+
+We are interested in decimal numbers:
+
 > base = 10
+
+and their divisibility by 7:
+
 > divi = 7
-> states = [0..divi-1] -- [0..6]
-> alphabet = [0..base-1]-- [0..9]
-> transitionFunc x a = (x*base + a) `mod` divi
+
+Our automaton needs 7 states and our strings will have 10 different digits.
+
+> states = [0..divi-1]
+> alphabet = [0..base-1]
+
+Going from one digit to the next, the state will transition as follows:
+
+> transitionFunc state digit = (state*base + digit) `mod` divi
 
 > main = do putStrLn . toString $ r
 
@@ -80,7 +91,7 @@ Remove duplicates in a list in O(n * log n):
 > simplify1 rm allTable = nubsT (normals ++ news)
 >     where classify (z0,a,z1) = (z0 == rm, z1 == rm)
 >           fc a = filter ((==a) . classify) $ allTable
->           loops = trace ("loops " ++ show (length allTable) ++ ": ") . Kleene . Alt . sort . map (\(_,a,_) -> a) .
+>           loops = Kleene . Alt . sort . map (\(_,a,_) -> a) .
 >                   fc $ (True, True)
 >           normals = fc (False, False)
 >           in_rm = fc (False, True)
