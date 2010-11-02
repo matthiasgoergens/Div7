@@ -3,6 +3,7 @@
 > import Data.List
 > import qualified Data.Set as S
 > import qualified Data.Map as M
+> import Data.Function
 
 We are interested in decimal numbers:
 
@@ -40,7 +41,7 @@ We only need maps (or dicts, to use the Python term) for combining duplicate tra
 
 > makeDict :: (Ord state, Ord digit) => Table state digit -> Dict state digit
 > makeDict t = M.fromListWith combine . map (\(z0,a,z1)->((z0,z1),a)) $ t
->     where combine a b = canonize . Alt $ [a, b]
+>     where combine a b = Alt $ [a, b]
 
 > dict2table :: (Ord state, Ord digit) => Dict state digit -> Table state digit
 > dict2table d = map (\((z0,z1),a) -> (z0,a,z1)) . M.toList $ d
@@ -56,38 +57,31 @@ Combine duplicate transitions in O (n * log n):
 
 > main = do print regex
 
-
-
-
-> data Regex a = Lit a | Cat [Regex a] | Alt [Regex a] | Kleene (Regex a) | Empty
+> data Regex a = Lit a  | Kleene (Regex a) | Cat [Regex a] | Alt [Regex a] | Empty 
 >     deriving (Eq, Ord)
 
 > instance Show a => Show (Regex a) where
->     show (Lit a) = putParens.show $ a
->     show (Cat as) = putParens . join . map show $ as
->     show (Alt as) = putParens . intercalate ("\\|") . map show $ as
->     show (Kleene a) = putParens . (++"*") . putParens . show $ a
+>     show = toString (const False)
 
-canonize tries to remove some redundancy from the regular expressions.
+> toString thisNeedsParens regex
+>              = (if thisNeedsParens regex then putParens else id)
+>                $ case regex
+>                  of Empty -> ""
+>                     Lit a -> show a
+>                     Cat as -> join . map down $ as
+>                     Alt as -> intercalate ("\\|") . map down $ as
+>                     Kleene a -> (++"*") . down $ a
+>     where down = toString (thatNeedsParens regex)
+>           putParens s = "\\("++s++"\\)"
 
-> canonize (Kleene (Kleene a)) = Kleene (canonize a)
-> canonize (Kleene a) = Kleene (canonize a)
-> canonize (Alt as) = jointAlts . map op . nubs $ as
->     where op (Alt b) = Alt b
->           op b = Alt [b]
->           jointAlts = Alt . join . map unAlt
->           unAlt (Alt x) = x
->           unAlt _ = undefined
-> 
-> canonize (Cat as) = joinCats . map op $ as
->     where op (Cat b) = Cat b
->           op (b) = Cat [b]
->           joinCats = Cat . join . map unCat
->           unCat (Cat x) = x
->           unCat _ = undefined
-> canonize x = x
+> -- thatNeedsParens _ _ = True
+> thatNeedsParens = (<) `on` stub
 
-> putParens s = "\\("++s++"\\)"
+> stub :: Regex a -> Regex ()
+> stub (Lit _) = Lit ()
+> stub (Cat _) = Cat []
+> stub (Kleene _) = Kleene Empty
+> stub (Alt _) = Alt []
 
 
 
@@ -114,6 +108,6 @@ Remove duplicates in a list in O(n * log n):
 >           in_rm = fc (False, True)
 >           out_rm = fc (True, False)
 >           news = connect <$> in_rm <*> out_rm
->           connect (z0,a,_) (_,b,z1) = (z0,canonize $ Cat [a, loops, b],z1)
+>           connect (z0,a,_) (_,b,z1) = (z0,Cat [a, loops, b],z1)
 
 
