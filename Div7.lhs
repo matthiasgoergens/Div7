@@ -55,7 +55,7 @@ Combine duplicate transitions in O (n * log n):
 > t = makeTable . makeSimpleTable states digits $ transitionFunc
 > regex = simplify 0 0 t
 
-> main = do print regex
+> main = do print $ regex
 
 > data Regex a = Lit a  | Kleene (Regex a) | Cat [Regex a] | Alt [Regex a] | Empty 
 >     deriving (Eq, Ord)
@@ -69,10 +69,10 @@ Combine duplicate transitions in O (n * log n):
 >                  of Empty -> ""
 >                     Lit a -> show a
 >                     Cat as -> join . map down $ as
->                     Alt as -> intercalate ("\\|") . map down $ as
+>                     Alt as -> intercalate ("|") . map down $ as
 >                     Kleene a -> (++"*") . down $ a
 >     where down = toString (thatNeedsParens regex)
->           putParens s = "\\("++s++"\\)"
+>           putParens s = "("++s++")"
 
 > -- thatNeedsParens _ _ = True
 > thatNeedsParens = (<) `on` stub
