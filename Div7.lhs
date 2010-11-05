@@ -1,3 +1,5 @@
+> {-# LANGUAGE NoMonomorphismRestriction #-}
+
 > import Control.Monad
 > import Control.Applicative
 > import Data.List
@@ -11,7 +13,7 @@ We are interested in decimal numbers:
 
 and their divisibility by 7:
 
-> divi = 7
+> divi = 60
 
 Our strings will have 10 different digits and our automaton needs 7 states.
 
@@ -34,8 +36,8 @@ Here `z' denotes a state and `a' denotes a digit.
 > makeSimpleTable states digit fun = fun' <$> states <*> digit
 >     where fun' z a = (z, a, fun z a)
 
-> makeTable :: STable z a -> Table z a
-> makeTable = map (\(zi,a,zj) -> (zi,Lit a, zj))
+> makeTable :: (Ord z, Ord a) => STable z a -> Table z a
+> makeTable = nubsT . map (\(zi,a,zj) -> (zi,Lit a, zj))
 
 We only need maps (or dicts, to use the Python term) for combining duplicate transitions in our tables:
 
