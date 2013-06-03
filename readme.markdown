@@ -13,4 +13,4 @@ Run e.g.
 to see the regular expression in action.
 
 The file regex7 contains the output of the latest run on my machine,
-in case you want the regular expression without build and running yourself.
+in case you want the regular expression without building and running yourself.
